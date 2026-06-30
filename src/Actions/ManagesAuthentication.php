@@ -35,7 +35,7 @@ class ManagesAuthentication extends WithingsManager
      */
     public function exchangeToken(string $code): TokenResponse
     {
-        return TokenResponse::fromArray($this->post('https://wbsapi.withings.net/v2/oauth2', [
+        return TokenResponse::fromArray($this->postForm('https://wbsapi.withings.net/v2/oauth2', [
             'action' => 'requesttoken',
             'client_id' => $this->clientId,
             'client_secret' => $this->clientSecret,
@@ -55,7 +55,7 @@ class ManagesAuthentication extends WithingsManager
      */
     public function refreshToken(string $refreshToken): TokenResponse
     {
-        return TokenResponse::fromArray($this->post('https://wbsapi.withings.net/v2/oauth2', [
+        return TokenResponse::fromArray($this->postForm('https://wbsapi.withings.net/v2/oauth2', [
             'action' => 'requesttoken',
             'client_id' => $this->clientId,
             'client_secret' => $this->clientSecret,

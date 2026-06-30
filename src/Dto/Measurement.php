@@ -4,12 +4,13 @@ namespace Foutraz\Withings\Dto;
 
 use DateTimeImmutable;
 
-class Measurement
+final readonly class Measurement
 {
     public function __construct(
         public int $externalId,
         public int $type,
         public float $value,
+        public int $unit,
         public DateTimeImmutable $measuredAt,
     ) {}
 
@@ -27,6 +28,7 @@ class Measurement
             (int) ($grp['grpid'] ?? 0),
             (int) ($measure['type'] ?? 0),
             (float) $value,
+            $unit,
             new DateTimeImmutable('@'.($grp['date'] ?? 0)),
         );
     }

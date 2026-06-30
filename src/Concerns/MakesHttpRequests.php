@@ -40,6 +40,21 @@ trait MakesHttpRequests
     }
 
     /**
+     * @param  array<string, mixed>  $payload
+     *
+     * @throws ActionFailed
+     * @throws GuzzleException
+     * @throws InvalidData
+     * @throws ResourceNotFound
+     * @throws TooManyRequestsException
+     * @throws Unauthorized
+     */
+    public function postForm(string $uri, array $payload = []): mixed
+    {
+        return $this->requestForm('POST', $uri, $payload);
+    }
+
+    /**
      * @throws ResourceNotFound
      * @throws Unauthorized
      * @throws GuzzleException
@@ -109,6 +124,59 @@ trait MakesHttpRequests
         $decoded = json_decode($responseBody, true);
 
         return json_last_error() === JSON_ERROR_NONE ? $decoded : $responseBody;
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     *
+     * @throws ResourceNotFound
+     * @throws Unauthorized
+     * @throws GuzzleException
+     * @throws ActionFailed
+     * @throws InvalidData
+     * @throws TooManyRequestsException
+     */
+    public function requestForm(string $verb, string $uri, array $payload = []): mixed
+    {
+        $options = [];
+
+        if (! empty($payload)) {
+            $options['form_params'] = $payload;
+        }
+
+        $response = $this->client->request($verb, $uri, $options);
+
+        if (! $this->isSuccessful($response)) {
+            $this->handleRequestError($response);
+        }
+
+        $responseBody = (string) $response->getBody();
+
+        $decoded = json_decode($responseBody, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return $responseBody;
+        }
+
+        $this->guardWithingsStatus($decoded);
+
+        return $decoded;
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $decoded
+     *
+     * @throws ActionFailed
+     */
+    protected function guardWithingsStatus(mixed $decoded): void
+    {
+        if (! is_array($decoded)) {
+            return;
+        }
+
+        if (isset($decoded['status']) && (int) $decoded['status'] !== 0) {
+            throw new ActionFailed((string) ($decoded['error'] ?? 'Withings API error (status '.$decoded['status'].')'));
+        }
     }
 
     public function isSuccessful(?ResponseInterface $response): bool

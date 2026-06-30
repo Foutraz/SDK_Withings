@@ -2,7 +2,7 @@
 
 namespace Foutraz\Withings\Dto;
 
-class TokenResponse
+final readonly class TokenResponse
 {
     public function __construct(
         public string $accessToken,

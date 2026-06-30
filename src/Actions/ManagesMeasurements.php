@@ -34,7 +34,7 @@ class ManagesMeasurements extends WithingsManager
             $payload['lastupdate'] = $lastUpdate;
         }
 
-        $response = $this->post('https://wbsapi.withings.net/measure', $payload);
+        $response = $this->postForm('https://wbsapi.withings.net/measure', $payload);
 
         $measuregrps = $response['body']['measuregrps'] ?? [];
 
