@@ -3,6 +3,7 @@
 namespace Foutraz\Withings\Dto;
 
 use DateTimeImmutable;
+use Foutraz\Withings\Enums\MeasureAttribution;
 
 final readonly class Measurement
 {
@@ -12,7 +13,16 @@ final readonly class Measurement
         public float $value,
         public int $unit,
         public DateTimeImmutable $measuredAt,
+        public ?int $attrib = null,
+        public ?int $category = null,
+        public ?string $deviceId = null,
+        public ?DateTimeImmutable $createdAt = null,
     ) {}
+
+    public function attribution(): ?MeasureAttribution
+    {
+        return $this->attrib === null ? null : MeasureAttribution::tryFrom($this->attrib);
+    }
 
     /**
      * @param array<string, mixed> $grp
@@ -30,6 +40,23 @@ final readonly class Measurement
             (float) $value,
             $unit,
             new DateTimeImmutable('@'.($grp['date'] ?? 0)),
+            self::integerOrNull($grp['attrib'] ?? null),
+            self::integerOrNull($grp['category'] ?? null),
+            isset($grp['deviceid']) ? (string) $grp['deviceid'] : null,
+            isset($grp['created']) ? new DateTimeImmutable('@'.$grp['created']) : null,
         );
+    }
+
+    private static function integerOrNull(mixed $raw): ?int
+    {
+        if (is_int($raw)) {
+            return $raw;
+        }
+
+        if (is_string($raw)) {
+            return filter_var($raw, FILTER_VALIDATE_INT, FILTER_NULL_ON_FAILURE);
+        }
+
+        return null;
     }
 }
