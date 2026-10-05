@@ -40,10 +40,23 @@ final readonly class Measurement
             (float) $value,
             $unit,
             new DateTimeImmutable('@'.($grp['date'] ?? 0)),
-            isset($grp['attrib']) ? (int) $grp['attrib'] : null,
-            isset($grp['category']) ? (int) $grp['category'] : null,
+            self::integerOrNull($grp['attrib'] ?? null),
+            self::integerOrNull($grp['category'] ?? null),
             isset($grp['deviceid']) ? (string) $grp['deviceid'] : null,
             isset($grp['created']) ? new DateTimeImmutable('@'.$grp['created']) : null,
         );
+    }
+
+    private static function integerOrNull(mixed $raw): ?int
+    {
+        if (is_int($raw)) {
+            return $raw;
+        }
+
+        if (is_string($raw)) {
+            return filter_var($raw, FILTER_VALIDATE_INT, FILTER_NULL_ON_FAILURE);
+        }
+
+        return null;
     }
 }

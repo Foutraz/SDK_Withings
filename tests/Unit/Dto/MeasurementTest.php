@@ -5,6 +5,7 @@ namespace Foutraz\Withings\Tests\Unit\Dto;
 use DateTimeImmutable;
 use Foutraz\Withings\Dto\Measurement;
 use Foutraz\Withings\Enums\MeasureAttribution;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -68,6 +69,49 @@ class MeasurementTest extends TestCase
         ], self::WEIGHT_MEASURE);
 
         $this->assertSame(15, $measurement->attrib);
+        $this->assertNull($measurement->attribution());
+    }
+
+    /** @return array<string, array{mixed, ?int}> */
+    public static function rawCodes(): array
+    {
+        return [
+            'integer' => [2, 2],
+            'zero' => [0, 0],
+            'integer-looking string' => ['2', 2],
+            'zero string' => ['0', 0],
+            'letters' => ['abc', null],
+            'empty string' => ['', null],
+            'trailing letters' => ['2abc', null],
+            'float' => [2.5, null],
+            'boolean' => [true, null],
+            'array' => [[], null],
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('rawCodes')]
+    public function it_keeps_attrib_only_when_the_raw_value_is_an_integer(mixed $raw, ?int $expected): void
+    {
+        $measurement = Measurement::fromArray(['grpid' => 5, 'attrib' => $raw, 'date' => 1700000000], self::WEIGHT_MEASURE);
+
+        $this->assertSame($expected, $measurement->attrib);
+    }
+
+    #[Test]
+    #[DataProvider('rawCodes')]
+    public function it_keeps_category_only_when_the_raw_value_is_an_integer(mixed $raw, ?int $expected): void
+    {
+        $measurement = Measurement::fromArray(['grpid' => 5, 'category' => $raw, 'date' => 1700000000], self::WEIGHT_MEASURE);
+
+        $this->assertSame($expected, $measurement->category);
+    }
+
+    #[Test]
+    public function it_does_not_resolve_a_device_attribution_from_a_non_numeric_attrib(): void
+    {
+        $measurement = Measurement::fromArray(['grpid' => 5, 'attrib' => 'abc', 'date' => 1700000000], self::WEIGHT_MEASURE);
+
         $this->assertNull($measurement->attribution());
     }
 
