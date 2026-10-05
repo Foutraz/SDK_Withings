@@ -15,10 +15,21 @@ abstract class TestCase extends BaseTestCase
     /** @var array<int, array<string, mixed>> */
     protected array $history = [];
 
+    protected ?MockHandler $handler = null;
+
+    protected function assertPostConditions(): void
+    {
+        if ($this->handler !== null) {
+            $this->assertCount(0, $this->handler, 'Queued responses were never requested.');
+        }
+    }
+
     /** @param array<int, Response> $responses */
     protected function managerWithResponses(array $responses): WithingsManager
     {
-        $stack = HandlerStack::create(new MockHandler($responses));
+        $this->handler = new MockHandler($responses);
+
+        $stack = HandlerStack::create($this->handler);
         $stack->push(Middleware::history($this->history));
 
         $client = new Client([
