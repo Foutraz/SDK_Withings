@@ -7,6 +7,7 @@ use Foutraz\Withings\Enums\MeasureCategory;
 use Foutraz\Withings\Exceptions\ActionFailed;
 use Foutraz\Withings\Tests\TestCase;
 use GuzzleHttp\Psr7\Response;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 
 class ManagesMeasurementsTest extends TestCase
@@ -84,12 +85,22 @@ class ManagesMeasurementsTest extends TestCase
         );
     }
 
+    /** @return array<string, array{?int}> */
+    public static function finalPageOffsets(): array
+    {
+        return [
+            'final page without offset' => [null],
+            'final page with offset zero' => [0],
+        ];
+    }
+
     #[Test]
-    public function it_follows_the_pages_until_the_last_one(): void
+    #[DataProvider('finalPageOffsets')]
+    public function it_follows_the_pages_until_the_last_one(?int $finalPageOffset): void
     {
         $manager = $this->managerWithResponses([
             $this->page([$this->group(1), $this->group(2)], more: 1, offset: 2),
-            $this->page([$this->group(3)], more: 0),
+            $this->page([$this->group(3)], more: 0, offset: $finalPageOffset),
         ]);
 
         $measurements = $manager->measurements()->getmeas(42, 1700000000);
