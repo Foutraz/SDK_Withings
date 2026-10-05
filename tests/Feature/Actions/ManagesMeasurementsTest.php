@@ -92,11 +92,14 @@ class ManagesMeasurementsTest extends TestCase
             $this->page([$this->group(3)], more: 0),
         ]);
 
-        $measurements = $manager->measurements()->getmeas(42);
+        $measurements = $manager->measurements()->getmeas(42, 1700000000);
 
         $this->assertCount(2, $this->requestBodies());
         $this->assertArrayNotHasKey('offset', $this->requestBodies()[0]);
-        $this->assertSame('2', $this->requestBodies()[1]['offset']);
+        $this->assertEquals(
+            ['action' => 'getmeas', 'userid' => '42', 'category' => '1', 'lastupdate' => '1700000000', 'offset' => '2'],
+            $this->requestBodies()[1],
+        );
         $this->assertSame([1, 2, 3], array_map(fn ($measurement) => $measurement->externalId, $measurements));
     }
 
